@@ -1,0 +1,112 @@
+/* =====================================================
+   EDURATE AUTH PAGES
+   Matches main.css navy/gold design system
+   ===================================================== */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg);
+  padding: 2rem 1rem;
+  position: relative; overflow: hidden;
+}
+
+/* Subtle dot grid */
+.auth-bg-grid {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(30,59,138,0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none; z-index: 0;
+}
+
+/* Radial glow */
+.auth-bg-glow {
+  position: absolute;
+  top: -200px; left: 50%; transform: translateX(-50%);
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(30,59,138,0.07) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ── Card ─────────────────────────────────────────────── */
+.auth-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem;
+  width: 100%; max-width: 440px;
+  position: relative; z-index: 1;
+  box-shadow: var(--shadow-lg);
+  animation: authCardIn 0.45s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes authCardIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+/* ── Logo ─────────────────────────────────────────────── */
+.auth-logo { display: flex; flex-direction: column; align-items: center; margin-bottom: 2rem; }
+.auth-logo:hover { opacity: 0.8; }
+
+.auth-logo-header { display: flex; align-items: center; gap: 0.75rem; }
+
+.auth-logo-mark {
+  width: 56px; height: 56px;
+  background: var(--primary);
+  border-radius: var(--radius-sm);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: var(--shadow-primary);
+}
+
+.auth-logo h1 {
+  font-family: var(--font);
+  font-size: 1.6rem; font-weight: 800;
+  letter-spacing: -0.5px; line-height: 1;
+  color: var(--text);
+}
+.auth-logo h1 span { color: var(--gold-dark); }
+.auth-logo p { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; }
+
+/* ── Headings ─────────────────────────────────────────── */
+.auth-title    { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.2rem; color: var(--text); }
+.auth-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.75rem; }
+
+/* ── Role selector ────────────────────────────────────── */
+.role-selector {
+  display: flex; gap: 0.375rem;
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 0.375rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border);
+}
+
+.role-btn {
+  flex: 1; padding: 0.5rem 0.25rem;
+  border: none; border-radius: var(--radius-xs);
+  font-size: 0.8rem; font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font);
+  display: flex; align-items: center; justify-content: center; gap: 0.35rem;
+  white-space: nowrap;
+}
+.role-btn:hover { color: var(--primary); }
+.role-btn.active {
+  background: white;
+  color: var(--primary);
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Footer link ──────────────────────────────────────── */
+.auth-footer-link { text-align: center; font-size: 0.875rem; color: var(--text-muted); margin-top: 1.5rem; }
+.auth-footer-link a { color: var(--primary); font-weight: 600; }
+.auth-footer-link a:hover { color: var(--primary-dark); text-decoration: underline; }
+
+@media (max-width: 480px) {
+  .auth-card { padding: 1.75rem 1.25rem; }
+}
