@@ -1,0 +1,125 @@
+<%- include('../partials/header', { title: isEdit ? 'Edit Course' : 'Add Course' }) %>
+<div class="app-shell">
+  <%- include('../partials/sidebar', { user: currentUser, activeNav: 'courses' }) %>
+  <main class="main-content">
+    <%- include('../partials/topbar', { pageTitle: isEdit ? 'Edit Course' : 'Add New Course' }) %>
+    <div class="content-area">
+      <div style="max-width:660px">
+
+        <a href="/admin/courses" class="btn btn-ghost btn-sm" style="margin-bottom:1.25rem">← Back to Courses</a>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title"><%=isEdit?'Edit Course':'Create New Course'%></div>
+              <div class="card-subtitle">Assign a lecturer and define the academic period</div>
+            </div>
+          </div>
+
+          <% if(errorMsg != null){ %>
+            <div class="alert alert-danger" style="margin-bottom:1rem">⚠ <%=errorMsg%></div>
+          <% } %>
+
+          <% const f=formData != null ? formData:(isEdit?editCourse:{}); %>
+
+          <form action="<%=isEdit?'/admin/courses/'+editCourse._id+'/edit':'/admin/courses/new'%>"
+                method="POST" data-loading-text="Saving…">
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="code">Course Code <span style="color:var(--danger)">*</span></label>
+                <input type="text" id="code" name="code" class="form-control"
+                       placeholder="CSC101" value="<%=f.code||''%>" required
+                       style="text-transform:uppercase">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="title">Course Title <span style="color:var(--danger)">*</span></label>
+                <input type="text" id="title" name="title" class="form-control"
+                       placeholder="Introduction to Programming" value="<%=f.title||''%>" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="lecturer">Assigned Lecturer <span style="color:var(--danger)">*</span></label>
+              <select id="lecturer" name="lecturer" class="form-control" required>
+                <option value="">Select a lecturer</option>
+                <% lecturers.forEach(l=>{ %>
+                  <% const sel=(f.lecturer&&(f.lecturer.toString()===l._id.toString()||f.lecturer===l._id.toString()))?'selected':''; %>
+                  <option value="<%=l._id%>" <%=sel%>>
+                    <%=l.fullName%> — <%=l.department||l.email%>
+                  </option>
+                <% }) %>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="department">Department <span style="color:var(--danger)">*</span></label>
+                <input type="text" id="department" name="department" class="form-control"
+                       placeholder="Computer Science" value="<%=f.department||''%>" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="school">School / Faculty <span style="color:var(--danger)">*</span></label>
+                <input type="text" id="school" name="school" class="form-control"
+                       placeholder="Engineering" value="<%=f.school||''%>" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="semester">Semester <span style="color:var(--danger)">*</span></label>
+                <select id="semester" name="semester" class="form-control" required>
+                  <option value="">Select semester</option>
+                  <option value="First"  <%=(f.semester||'')==='First'  ?'selected':''%>>First Semester</option>
+                  <option value="Second" <%=(f.semester||'')==='Second' ?'selected':''%>>Second Semester</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="academicYear">Academic Year <span style="color:var(--danger)">*</span></label>
+                <input type="text" id="academicYear" name="academicYear" class="form-control"
+                       placeholder="2023/2024" value="<%=f.academicYear||''%>" required>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+            <div class="flex gap-2">
+              <a href="/admin/courses" class="btn btn-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary" style="flex:1">
+                <%=isEdit?'Save Changes':'Create Course'%>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <% if(isEdit){ %>
+          <div class="card" style="margin-top:1.5rem">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Enroll Students</div>
+                <div class="card-subtitle">
+                  <%=editCourse.enrolledStudents?editCourse.enrolledStudents.length:0%> students currently enrolled
+                </div>
+              </div>
+            </div>
+            <form action="/admin/courses/<%=editCourse._id%>/enroll" method="POST" data-loading-text="Enrolling…">
+              <div class="form-group">
+                <label class="form-label">Select Student</label>
+                <select name="studentId" class="form-control" required>
+                  <option value="">Choose a student to enroll</option>
+                  <% if(students != null){ %>
+                    <% students.forEach(s=>{ %>
+                      <option value="<%=s._id%>"><%=s.fullName%> — <%=s.matricNumber||s.email%></option>
+                    <% }) %>
+                  <% } %>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-success btn-sm">Enroll Student</button>
+            </form>
+          </div>
+        <% } %>
+
+      </div>
+    </div>
+  </main>
+</div>
+<%- include('../partials/footer') %>

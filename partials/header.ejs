@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' && title ? title + ' — EduRate' : 'EduRate' %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <% if (typeof extraCss !== 'undefined' && extraCss) { %>
+    <link rel="stylesheet" href="/css/<%= extraCss %>">
+  <% } %>
+</head>
+<body class="<%= typeof bodyClass !== 'undefined' && bodyClass ? bodyClass : '' %>">
+<%- include('./toast') %>

@@ -1,0 +1,316 @@
+<%- include('../partials/header', { title: 'My Dashboard' }) %>
+
+<div class="app-shell">
+  <%- include('../partials/sidebar', { user, activeNav: 'overview' }) %>
+
+  <main class="main-content">
+    <%- include('../partials/topbar', { pageTitle: 'My Dashboard' }) %>
+
+    <div class="content-area">
+
+      <%
+        /* ── Shared score-colour helper (used throughout this view) ── */
+        function scoreCol(v) {
+          return v >= 4.5 ? '#0fb981' : v >= 3.5 ? '#2a6fdb' : v >= 2.5 ? '#f0a847' : '#f04a4a';
+        }
+        function scoreLabel(v) {
+          return v >= 4.5 ? 'Excellent' : v >= 3.5 ? 'Good' : v >= 2.5 ? 'Average' : 'Below Average';
+        }
+      %>
+
+      <!-- ══════════════════════════════════════════════════════
+           WELCOME BANNER
+      ══════════════════════════════════════════════════════ -->
+      <div class="section-banner" style="margin-bottom:1.75rem">
+        <div class="section-banner-icon">👨‍🏫</div>
+        <div>
+          <h2>Welcome back, <%= user.fullName.split(' ')[0] %></h2>
+          <p>
+            <% if (totalResponses === 0) { %>
+              No evaluation responses yet. Data will appear once students submit during an active period.
+            <% } else { %>
+              You have received <strong style="color:var(--text)"><%= totalResponses %></strong>
+              evaluation response<%= totalResponses !== 1 ? 's' : '' %> with an overall score of
+              <strong style="color:<%= scoreCol(overallStats.mean) %>"><%= overallStats.mean.toFixed(2) %> / 5</strong>.
+            <% } %>
+          </p>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════
+           STAT CARDS
+      ══════════════════════════════════════════════════════ -->
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr); margin-bottom:1.75rem">
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(42,111,219,0.15); color:var(--accent2)">💬</div>
+          <div class="stat-info">
+            <div class="value"><%= totalResponses %></div>
+            <div class="label">Total Responses</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(15,185,129,0.15); color:var(--success)">⭐</div>
+          <div class="stat-info">
+            <div class="value" style="<%= overallStats ? 'color:' + scoreCol(overallStats.mean) : '' %>">
+              <%= overallStats ? overallStats.mean.toFixed(2) : '—' %>
+            </div>
+            <div class="label">Average Score / 5</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(240,168,71,0.15); color:var(--warning)">🏆</div>
+          <div class="stat-info">
+            <div class="value" style="font-size:1rem; letter-spacing:0; color:<%= overallStats ? scoreCol(overallStats.mean) : 'var(--text-muted)' %>">
+              <%= overallStats ? scoreLabel(overallStats.mean) : '—' %>
+            </div>
+            <div class="label">Performance Rating</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════
+           EMPTY STATE
+      ══════════════════════════════════════════════════════ -->
+      <% if (totalResponses === 0) { %>
+        <div class="card" style="padding:4rem; text-align:center">
+          <div style="font-size:3rem; margin-bottom:1rem; opacity:0.3">📊</div>
+          <h3 style="margin-bottom:0.5rem">No evaluations yet</h3>
+          <p class="text-muted text-sm" style="max-width:420px; margin:0 auto">
+            Your evaluation data will appear here once students submit their responses during
+            an active evaluation period. Check back after the current period closes.
+          </p>
+          <a href="/lecturer/reports" class="btn btn-secondary" style="margin-top:1.5rem">
+            View Reports Page →
+          </a>
+        </div>
+
+      <% } else { %>
+
+      <!-- ══════════════════════════════════════════════════════
+           FILTER BAR
+      ══════════════════════════════════════════════════════ -->
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-header" style="margin-bottom:1rem">
+          <div>
+            <div class="card-title">Filter Data</div>
+            <div class="card-subtitle">Narrow results by semester or academic year</div>
+          </div>
+          <% if (typeof filters !== 'undefined' && (filters.semester || filters.academicYear)) { %>
+            <span class="badge badge-yellow">Filtered</span>
+          <% } %>
+        </div>
+        <form action="/lecturer/dashboard" method="GET"
+              class="flex gap-2" style="flex-wrap:wrap; align-items:flex-end"
+              data-loading-text="Applying…">
+          <div class="form-group" style="margin-bottom:0; flex:1; min-width:140px">
+            <label class="form-label">Semester</label>
+            <select name="semester" class="form-control">
+              <option value="">All Semesters</option>
+              <option value="First"
+                <%= typeof filters !== 'undefined' && filters.semester === 'First' ? 'selected' : '' %>>
+                First
+              </option>
+              <option value="Second"
+                <%= typeof filters !== 'undefined' && filters.semester === 'Second' ? 'selected' : '' %>>
+                Second
+              </option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0; flex:1; min-width:150px">
+            <label class="form-label">Academic Year</label>
+            <input type="text" name="academicYear" class="form-control"
+              placeholder="e.g. 2023/2024"
+              value="<%= typeof filters !== 'undefined' ? (filters.academicYear || '') : '' %>">
+          </div>
+          <div style="display:flex; gap:0.5rem">
+            <button type="submit" class="btn btn-primary">Apply</button>
+            <a href="/lecturer/dashboard" class="btn btn-secondary">Clear</a>
+          </div>
+        </form>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════
+           OVERVIEW GRID — Score Ring + Top Criteria
+      ══════════════════════════════════════════════════════ -->
+      <%
+        const score = overallStats.mean;
+        const r     = 50;
+        const circ  = +(2 * Math.PI * r).toFixed(2);
+        const dash  = +((score / 5) * circ).toFixed(2);
+        const ringColor = scoreCol(score);
+      %>
+
+      <div class="grid-2" style="margin-bottom:1.5rem">
+
+        <!-- Score Ring -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Overall Performance</div>
+              <div class="card-subtitle">
+                Based on <%= totalResponses %> response<%= totalResponses !== 1 ? 's' : '' %>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:center; gap:2rem; padding:1rem 0 0.5rem">
+
+            <!-- SVG ring rendered entirely server-side -->
+            <div class="score-ring" style="width:130px; height:130px; flex-shrink:0">
+              <svg width="130" height="130" viewBox="0 0 130 130" aria-hidden="true">
+                <!-- Track -->
+                <circle cx="65" cy="65" r="<%= r %>"
+                  fill="none" stroke="var(--surface2)" stroke-width="11"
+                  transform="rotate(-90 65 65)"/>
+                <!-- Fill -->
+                <circle cx="65" cy="65" r="<%= r %>"
+                  fill="none"
+                  stroke="<%= ringColor %>"
+                  stroke-width="11"
+                  stroke-dasharray="<%= dash %> <%= circ %>"
+                  stroke-linecap="round"
+                  transform="rotate(-90 65 65)"
+                  style="filter:drop-shadow(0 0 8px <%= ringColor %>55)"/>
+              </svg>
+              <div class="score-text">
+                <span class="score-val" style="color:<%= ringColor %>; font-size:1.7rem">
+                  <%= score.toFixed(1) %>
+                </span>
+                <span class="score-max">/ 5.0</span>
+              </div>
+            </div>
+
+            <!-- Stats aside ring -->
+            <div>
+              <div style="font-size:1.4rem; font-weight:800; color:<%= ringColor %>; margin-bottom:0.5rem">
+                <%= scoreLabel(score) %>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:0.4rem">
+                <div class="text-sm">
+                  <span class="text-muted">Mean&nbsp;&nbsp;</span>
+                  <strong style="color:<%= ringColor %>"><%= score.toFixed(2) %></strong>
+                </div>
+                <div class="text-sm">
+                  <span class="text-muted">Median&nbsp;</span>
+                  <strong><%= overallStats.median %></strong>
+                </div>
+                <div class="text-sm">
+                  <span class="text-muted">Mode&nbsp;&nbsp;</span>
+                  <strong><%= overallStats.mode %></strong>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Top Criteria -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Criteria Highlights</div>
+              <div class="card-subtitle">Your top and bottom scoring areas</div>
+            </div>
+            <a href="/lecturer/reports" class="btn btn-ghost btn-sm">Full report →</a>
+          </div>
+
+          <%
+            const sortedCriteria = criteriaStats.slice().sort((a, b) => b.mean - a.mean);
+          %>
+          <% sortedCriteria.slice(0, 4).forEach((s, i) => { %>
+            <%
+              const c      = scoreCol(s.mean);
+              const isLast = i === sortedCriteria.slice(0,4).length - 1;
+            %>
+            <div style="margin-bottom:<%= isLast ? '0' : '1rem' %>">
+              <div class="flex justify-between text-sm" style="margin-bottom:0.35rem; align-items:center">
+                <span style="font-weight:500; max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis"
+                      data-tooltip="<%= s.name %>">
+                  <%= s.name %>
+                </span>
+                <div style="display:flex; align-items:center; gap:0.5rem; flex-shrink:0">
+                  <span style="color:<%= c %>; font-weight:700"><%= s.mean.toFixed(2) %></span>
+                  <% if (i === 0) { %>
+                    <span class="badge badge-green" style="font-size:0.6rem">Top ↑</span>
+                  <% } else if (i === sortedCriteria.slice(0,4).length - 1 && sortedCriteria.length > 1) { %>
+                    <span class="badge badge-yellow" style="font-size:0.6rem">Lowest</span>
+                  <% } %>
+                </div>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill"
+                     style="width:<%= (s.mean / 5 * 100).toFixed(0) %>%; background:<%= c %>">
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+
+      </div><!-- /overview grid -->
+
+      <!-- ══════════════════════════════════════════════════════
+           BAR CHART — All Criteria
+      ══════════════════════════════════════════════════════ -->
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Scores by Criteria</div>
+            <div class="card-subtitle">Mean score for each evaluation criterion (1–5 scale)</div>
+          </div>
+          <span class="badge badge-gray"><%= criteriaStats.length %> criteria</span>
+        </div>
+        <div class="chart-container" style="height:290px">
+          <canvas id="criteriaBarChart" aria-label="Bar chart of scores per criterion"></canvas>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════
+           TREND LINE CHART — only when ≥ 2 data points
+      ══════════════════════════════════════════════════════ -->
+      <% if (trend && trend.length >= 2) { %>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Performance Trend</div>
+              <div class="card-subtitle">Average evaluation score across semesters / academic years</div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:210px">
+            <canvas id="trendChart" aria-label="Line chart of performance over time"></canvas>
+          </div>
+        </div>
+      <% } %>
+
+      <% } %> <!-- /end else (totalResponses > 0) -->
+
+    </div><!-- /content-area -->
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     CHART DATA — injected for charts.js to read
+══════════════════════════════════════════════════════ -->
+<% if (totalResponses > 0) { %>
+<script>
+  window.EDURATE_CHARTS = {
+    criteriaBar: {
+      labels: <%- JSON.stringify(criteriaStats.map(s => s.name)) %>,
+      data:   <%- JSON.stringify(criteriaStats.map(s => s.mean)) %>,
+      colors: <%- JSON.stringify(criteriaStats.map(s =>
+        s.mean >= 4.5 ? '#0fb981' : s.mean >= 3.5 ? '#2a6fdb' : s.mean >= 2.5 ? '#f0a847' : '#f04a4a'
+      )) %>,
+    },
+    <% if (trend && trend.length >= 2) { %>
+    trend: {
+      labels: <%- JSON.stringify(trend.map(t => t.label)) %>,
+      data:   <%- JSON.stringify(trend.map(t => t.avg))   %>,
+    },
+    <% } %>
+  };
+</script>
+<% } %>
+
+<%- include('../partials/footer', { extraJs: ['charts.js'] }) %>

@@ -1,0 +1,230 @@
+<%- include('../partials/header', { title: 'My Dashboard' }) %>
+
+<div class="app-shell">
+  <%- include('../partials/sidebar', { user, activeNav: 'overview' }) %>
+
+  <main class="main-content">
+    <%- include('../partials/topbar', { pageTitle: 'My Dashboard' }) %>
+
+    <div class="content-area">
+
+      <!-- WELCOME BANNER -->
+      <div class="section-banner" style="margin-bottom:1.75rem">
+        <div class="section-banner-icon">🎓</div>
+        <div>
+          <h2>Welcome back, <%= user.fullName.split(' ')[0] %></h2>
+          <p>
+            You have
+            <strong style="color:<%= pending.length > 0 ? 'var(--warning)' : 'var(--success)' %>">
+              <%= pending.length %> pending evaluation<%= pending.length !== 1 ? 's' : '' %>
+            </strong>
+            this period.
+            <% if (pending.length > 0) { %>
+              Complete them before the deadlines below.
+            <% } else { %>
+              You are all caught up — great work!
+            <% } %>
+          </p>
+        </div>
+      </div>
+
+      <!-- STATS ROW -->
+      <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr)">
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(240,168,71,0.15); color:var(--warning)">⏳</div>
+          <div class="stat-info">
+            <div class="value"><%= pending.length %></div>
+            <div class="label">Pending Evaluations</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(15,185,129,0.15); color:var(--success)">✓</div>
+          <div class="stat-info">
+            <div class="value"><%= completed.length %></div>
+            <div class="label">Completed</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(42,111,219,0.15); color:var(--accent2)">📚</div>
+          <div class="stat-info">
+            <div class="value"><%= pending.length + completed.length %></div>
+            <div class="label">Enrolled Courses</div>
+          </div>
+        </div>
+
+      </div><!-- /stats -->
+
+      <!-- PENDING + COMPLETED GRID -->
+      <div class="grid-2">
+
+        <!-- ===== PENDING EVALUATIONS ===== -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Pending Evaluations</div>
+              <div class="card-subtitle">Complete before the deadline to submit your feedback</div>
+            </div>
+            <% if (pending.length > 0) { %>
+              <span class="badge badge-yellow"><%= pending.length %> open</span>
+            <% } %>
+          </div>
+
+          <% if (pending.length === 0) { %>
+            <div class="empty-state">
+              <div class="empty-icon">🎉</div>
+              <h3>All caught up!</h3>
+              <p>No pending evaluations at the moment.</p>
+            </div>
+          <% } else { %>
+            <% pending.forEach((item, idx) => { %>
+              <%
+                const daysNum  = parseInt(item.daysLeft);
+                const dotClass = daysNum <= 2 ? 'urgent' : daysNum <= 5 ? 'soon' : 'normal';
+                const hasMultipleLecturers = item.lecturers.length > 1;
+                const modalId = `lecturerModal-${item.course.code}-${item.period._id}`;
+              %>
+              <div class="eval-item pending" style="animation-delay: <%= idx * 0.06 %>s">
+
+                <!-- badges row -->
+                <div class="flex items-center gap-1" style="flex-wrap:wrap">
+                  <span class="badge badge-blue"><%= item.course.code %></span>
+                  <span class="badge badge-purple"><%= item.course.department %></span>
+                  <% if (hasMultipleLecturers) { %>
+                    <span class="badge badge-gray"><%= item.lecturers.length %> lecturers</span>
+                  <% } %>
+                </div>
+
+                <div class="eval-item-title"><%= item.course.title %></div>
+
+                <% if (!hasMultipleLecturers) { %>
+                  <!-- Single lecturer - show directly -->
+                  <div class="eval-item-meta" style="margin-bottom:0.75rem">
+                    👤 <%= item.lecturers[0].fullName %>
+                  </div>
+                <% } else { %>
+                  <!-- Multiple lecturers - show count -->
+                  <div class="eval-item-meta" style="margin-bottom:0.75rem">
+                    👥 <%= item.lecturers.map(l => l.fullName).join(', ') %>
+                  </div>
+                <% } %>
+
+                <!-- deadline indicator -->
+                <div class="flex items-center justify-between" style="flex-wrap:wrap; gap:0.5rem">
+                  <div class="deadline-indicator">
+                    <div class="deadline-dot <%= dotClass %>"></div>
+                    <span style="color:<%= dotClass === 'urgent' ? 'var(--danger)' : dotClass === 'soon' ? 'var(--warning)' : 'var(--success)' %>">
+                      <%= item.daysLeft %>
+                    </span>
+                    <span class="text-muted">· closes <%= item.period.endDateFormatted %></span>
+                  </div>
+                  <% if (hasMultipleLecturers) { %>
+                    <button
+                      class="btn btn-primary btn-sm"
+                      onclick="document.getElementById('<%= modalId %>').showModal()"
+                    >
+                      Select Lecturer →
+                    </button>
+                  <% } else { %>
+                    <a
+                      href="/student/evaluate/<%= item.lecturers[0].courseId %>?period=<%= item.period._id %>"
+                      class="btn btn-primary btn-sm"
+                    >
+                      Evaluate →
+                    </a>
+                  <% } %>
+                </div>
+
+              </div>
+
+              <!-- Lecturer Selection Modal (for multiple lecturers) -->
+              <% if (hasMultipleLecturers) { %>
+                <dialog id="<%= modalId %>" class="modal">
+                  <div class="modal-box">
+                    <div class="modal-header">
+                      <h3 class="modal-title">Select your lecturer for <%= item.course.code %></h3>
+                      <button class="modal-close" onclick="document.getElementById('<%= modalId %>').close()">✕</button>
+                    </div>
+                    <div class="modal-body">
+                      <p class="text-muted" style="margin-bottom: 1.5rem">
+                        You have <strong><%= item.course.title %></strong> with multiple lecturers. 
+                        Please select the lecturer you are taking this course with.
+                      </p>
+                      <div style="display: flex; flex-direction: column; gap: 0.75rem">
+                        <% item.lecturers.forEach(lecturer => { %>
+                          <a
+                            href="/student/evaluate/<%= lecturer.courseId %>?period=<%= item.period._id %>"
+                            class="btn btn-secondary"
+                            onclick="document.getElementById('<%= modalId %>').close()"
+                            style="text-align: left; padding: 0.875rem 1rem"
+                          >
+                            <span style="font-weight: 500">👤 <%= lecturer.fullName %></span>
+                          </a>
+                        <% }) %>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button class="btn btn-outline" onclick="document.getElementById('<%= modalId %>').close()">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                  <form method="dialog" class="modal-backdrop">
+                    <button aria-label="Close" type="submit"></button>
+                  </form>
+                </dialog>
+              <% } %>
+            <% }) %>
+          <% } %>
+        </div>
+
+        <!-- ===== COMPLETED EVALUATIONS ===== -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Completed</div>
+              <div class="card-subtitle">Evaluations you have already submitted</div>
+            </div>
+            <% if (completed.length > 0) { %>
+              <span class="badge badge-green"><%= completed.length %> done</span>
+            <% } %>
+          </div>
+
+          <% if (completed.length === 0) { %>
+            <div class="empty-state">
+              <div class="empty-icon">📝</div>
+              <h3>No submissions yet</h3>
+              <p>Your completed evaluations will appear here.</p>
+            </div>
+          <% } else { %>
+            <% completed.forEach((item, idx) => { %>
+              <div class="eval-item complete" style="animation-delay: <%= idx * 0.06 %>s">
+                <div class="flex items-center gap-1" style="margin-bottom:0.4rem; flex-wrap:wrap">
+                  <span class="badge badge-blue"><%= item.course.code %></span>
+                  <span class="badge badge-green">✓ Submitted</span>
+                  <% if (item.lecturers.length > 1) { %>
+                    <span class="badge badge-gray"><%= item.lecturers.length %> lecturers</span>
+                  <% } %>
+                </div>
+                <div class="eval-item-title"><%= item.course.title %></div>
+                <div class="eval-item-meta">
+                  <% if (item.lecturers.length === 1) { %>
+                    👤 <%= item.lecturers[0].fullName %>
+                  <% } else { %>
+                    👥 <%= item.lecturers.map(l => l.fullName).join(', ') %>
+                  <% } %>
+                </div>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+
+      </div><!-- /grid-2 -->
+
+    </div><!-- /content-area -->
+  </main>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,85 @@
+<%- include('../partials/header', { title: isEdit ? 'Edit Criteria' : 'Add Criteria' }) %>
+<div class="app-shell">
+  <%- include('../partials/sidebar', { user: currentUser, activeNav: 'criteria' }) %>
+  <main class="main-content">
+    <%- include('../partials/topbar', { pageTitle: isEdit ? 'Edit Criteria' : 'Add Evaluation Criteria' }) %>
+    <div class="content-area">
+      <div style="max-width:560px">
+
+        <a href="/admin/criteria" class="btn btn-ghost btn-sm" style="margin-bottom:1.25rem">← Back to Criteria</a>
+
+        <div class="alert alert-info" style="margin-bottom:1.25rem">
+          ℹ <%=isEdit
+            ?'Changes here only affect future evaluation forms. Existing records are preserved exactly as submitted.'
+            :'New criteria will appear on evaluation forms for all future active evaluation periods.'
+          %>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><%=isEdit?'Edit Criteria':'New Evaluation Criteria'%></div>
+          </div>
+
+          <% if(errorMsg != null){ %>
+            <div class="alert alert-danger" style="margin-bottom:1rem">⚠ <%=errorMsg%></div>
+          <% } %>
+
+          <% const f=formData != null ? formData:(isEdit?editCriteria:{}); %>
+
+          <form action="<%=isEdit?'/admin/criteria/'+editCriteria._id+'/edit':'/admin/criteria/new'%>"
+                method="POST" data-loading-text="Saving…">
+
+            <div class="form-group">
+              <label class="form-label" for="name">Criteria Name <span style="color:var(--danger)">*</span></label>
+              <input type="text" id="name" name="name" class="form-control"
+                     placeholder="e.g. Punctuality, Clarity of Explanation"
+                     value="<%=f.name||''%>" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="description">Description</label>
+              <textarea id="description" name="description" class="form-control"
+                        placeholder="Brief explanation of what students should consider when rating this criterion…"
+                        rows="3"><%=f.description||''%></textarea>
+              <div class="form-hint">Shown beneath the criterion name on the evaluation form</div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="category">Category</label>
+                <input type="text" id="category" name="category" class="form-control"
+                       placeholder="e.g. Teaching, Professionalism"
+                       value="<%=f.category||''%>">
+                <div class="form-hint">Used to group criteria in reports</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="order">Display Order</label>
+                <input type="number" id="order" name="order" class="form-control"
+                       placeholder="0" value="<%=f.order != null ? f.order : 0%>" min="0">
+                <div class="form-hint">Lower numbers appear first on the form</div>
+              </div>
+            </div>
+
+            <div class="form-group" style="display:flex;align-items:center;gap:0.75rem">
+              <input type="checkbox" id="isActive" name="isActive" value="true"
+                     style="width:18px;height:18px;accent-color:var(--accent)"
+                     <%=(!isEdit||(f.isActive===true||f.isActive==='true'))?'checked':''%>>
+              <label for="isActive" style="font-size:0.875rem;cursor:pointer;font-weight:500">
+                Active — visible to students on evaluation forms
+              </label>
+            </div>
+
+            <div class="divider"></div>
+            <div class="flex gap-2">
+              <a href="/admin/criteria" class="btn btn-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary" style="flex:1">
+                <%=isEdit?'Save Changes':'Create Criteria'%>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<%- include('../partials/footer') %>

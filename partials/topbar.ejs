@@ -1,0 +1,11 @@
+<div class="topbar">
+  <div class="flex items-center gap-2">
+    <button class="btn btn-ghost btn-sm" id="sidebar-toggle" aria-label="Toggle sidebar">☰</button>
+    <h2 style="font-size:1.1rem; font-weight:700"><%= typeof pageTitle !== 'undefined' && pageTitle ? pageTitle : '' %></h2>
+  </div>
+  <div class="flex items-center gap-2">
+    <% if (typeof flash !== 'undefined' && flash && flash.info) { %>
+      <span class="badge badge-green"><%= flash.info %></span>
+    <% } %>
+  </div>
+</div>

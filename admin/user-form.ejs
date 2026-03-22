@@ -1,0 +1,121 @@
+<%- include('../partials/header', { title: isEdit ? 'Edit User' : 'Add User' }) %>
+<div class="app-shell">
+  <%- include('../partials/sidebar', { user: currentUser, activeNav: 'users' }) %>
+  <main class="main-content">
+    <%- include('../partials/topbar', { pageTitle: isEdit ? 'Edit User' : 'Add New User' }) %>
+    <div class="content-area">
+      <div style="max-width:640px">
+
+        <a href="/admin/users" class="btn btn-ghost btn-sm" style="margin-bottom:1.25rem">← Back to Users</a>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title"><%=isEdit?'Edit User':'Create New User'%></div>
+              <div class="card-subtitle"><%=isEdit?'Update account details below':'Fill in the details to create a new account'%></div>
+            </div>
+            <% if(isEdit){ %><span class="badge badge-<%={admin:'yellow',lecturer:'green',student:'blue'}[editUser.role]||'gray'%>"><%=editUser.role%></span><% } %>
+          </div>
+
+          <% if(errorMsg != null){ %>
+            <div class="alert alert-danger" style="margin-bottom:1rem">⚠ <%=errorMsg%></div>
+          <% } %>
+
+          <% const f=formData != null ? formData:(isEdit?editUser:{}); %>
+
+          <form action="<%=isEdit?'/admin/users/'+editUser._id+'/edit':'/admin/users/new'%>"
+                method="POST" data-loading-text="Saving…">
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="fullName">Full Name <span style="color:var(--danger)">*</span></label>
+                <input type="text" id="fullName" name="fullName" class="form-control"
+                       placeholder="Jane Doe" value="<%=f.fullName||''%>" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="email">Email Address <span style="color:var(--danger)">*</span></label>
+                <input type="email" id="email" name="email" class="form-control"
+                       placeholder="jane@university.edu" value="<%=f.email||''%>" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="role">Role <span style="color:var(--danger)">*</span></label>
+                <select id="role" name="role" class="form-control" required>
+                  <option value="">Select role</option>
+                  <option value="student"  <%=(f.role||'')==='student'  ?'selected':''%>>Student</option>
+                  <option value="lecturer" <%=(f.role||'')==='lecturer' ?'selected':''%>>Lecturer</option>
+                  <option value="admin"    <%=(f.role||'')==='admin'    ?'selected':''%>>Admin</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="matricNumber">Matric / Staff ID</label>
+                <input type="text" id="matricNumber" name="matricNumber" class="form-control"
+                       placeholder="CSC/2021/001" value="<%=f.matricNumber||f.staffId||''%>">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="department">Department</label>
+                <input type="text" id="department" name="department" class="form-control"
+                       placeholder="Computer Science" value="<%=f.department||''%>">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="school">School / Faculty</label>
+                <input type="text" id="school" name="school" class="form-control"
+                       placeholder="Engineering" value="<%=f.school||''%>">
+              </div>
+            </div>
+
+            <% if((f.role || '') === 'student'){ %>
+            <div class="form-group">
+              <label class="form-label" for="level">Level</label>
+              <select id="level" name="level" class="form-control">
+                <option value="">Select level</option>
+                <option value="100" <%= (f.level || '') == 100 ? 'selected' : '' %>>100 Level</option>
+                <option value="200" <%= (f.level || '') == 200 ? 'selected' : '' %>>200 Level</option>
+                <option value="300" <%= (f.level || '') == 300 ? 'selected' : '' %>>300 Level</option>
+                <option value="400" <%= (f.level || '') == 400 ? 'selected' : '' %>>400 Level</option>
+              </select>
+            </div>
+            <% } %>
+
+            <% if(!isEdit){ %>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="password">Password <span style="color:var(--danger)">*</span></label>
+                  <div class="password-field">
+                    <input type="password" id="password" name="password" class="form-control"
+                           placeholder="Min 6 characters" required minlength="6">
+                    <button type="button" class="password-toggle">👁</button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="confirmPassword">Confirm Password <span style="color:var(--danger)">*</span></label>
+                  <div class="password-field">
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-control"
+                           placeholder="Repeat password" required>
+                    <button type="button" class="password-toggle">👁</button>
+                  </div>
+                  <span id="confirm-match-hint" class="form-hint"></span>
+                </div>
+              </div>
+            <% } %>
+
+            <div class="divider"></div>
+            <div class="flex gap-2">
+              <a href="/admin/users" class="btn btn-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary" style="flex:1">
+                <%=isEdit?'Save Changes':'Create User'%>
+              </button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+<%- include('../partials/footer', { extraJs: ['auth.js'] }) %>

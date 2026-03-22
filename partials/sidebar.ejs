@@ -1,0 +1,75 @@
+<%
+  const roleColors = { admin: 'avatar-gold', lecturer: 'avatar-green', student: 'avatar-blue' };
+  const initials = user.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const avatarClass = roleColors[user.role] || 'avatar-blue';
+
+  const navItems = {
+    student: [
+      { key: 'overview',  icon: '🏠', label: 'Overview',        href: '/student/dashboard' },
+      { key: 'evaluate',  icon: '📝', label: 'My Evaluations',  href: '/student/evaluate' },
+      { key: 'profile',   icon: '👤', label: 'My Profile',      href: '/student/profile' },
+    ],
+    lecturer: [
+      { key: 'overview',  icon: '🏠', label: 'Overview',           href: '/lecturer/dashboard' },
+      { key: 'reports',   icon: '📈', label: 'Evaluation Reports',  href: '/lecturer/reports' },
+      { key: 'profile',   icon: '👤', label: 'My Profile',          href: '/lecturer/profile' },
+    ],
+    admin: [
+      { key: 'overview',  icon: '🏠', label: 'Overview',             href: '/admin/dashboard' },
+      { key: 'analytics', icon: '📊', label: 'Analytics & Reports',  href: '/admin/analytics' },
+      { key: 'users',     icon: '👥', label: 'Users',                href: '/admin/users' },
+      { key: 'courses',   icon: '📚', label: 'Courses',              href: '/admin/courses' },
+      { key: 'criteria',  icon: '✅', label: 'Evaluation Criteria', href: '/admin/criteria' },
+      { key: 'periods',   icon: '📅', label: 'Evaluation Periods',  href: '/admin/periods' },
+    ],
+  };
+
+  const items = navItems[user.role] || [];
+  const sectionBreak = { admin: ['analytics', 'users'] };
+%>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon">📊</div>
+      <div class="logo-text">Edu<span>Rate</span></div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <% let sectionStarted = false; %>
+    <% items.forEach((item, i) => { %>
+      <%
+        const isManagementStart = user.role === 'admin' && item.key === 'users';
+        const isDashboardStart  = i === 0;
+      %>
+      <% if (isDashboardStart) { %>
+        <div class="nav-section-label">
+          <%= user.role === 'admin' ? 'Dashboard' : 'Navigation' %>
+        </div>
+      <% } %>
+      <% if (isManagementStart) { %>
+        <div class="nav-section-label" style="margin-top:0.75rem">Management</div>
+      <% } %>
+
+      <a href="<%= item.href %>"
+         class="nav-item <%= typeof activeNav !== 'undefined' && activeNav === item.key ? 'active' : '' %>">
+        <span class="icon"><%= item.icon %></span>
+        <%= item.label %>
+      </a>
+    <% }) %>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="avatar <%= avatarClass %>"><%= initials %></div>
+      <div class="user-info">
+        <div class="user-name"><%= user.fullName %></div>
+        <div class="user-role"><%= user.role %></div>
+      </div>
+      <form action="/auth/logout" method="POST" style="margin:0">
+        <button type="submit" class="btn btn-ghost btn-sm" title="Sign out">↩</button>
+      </form>
+    </div>
+  </div>
+</aside>

@@ -1,0 +1,7 @@
+<div id="toast-container"></div>
+<% if (typeof successMsg !== 'undefined' && successMsg) { %>
+  <div class="flash-data" data-type="success" data-msg="<%= successMsg %>"></div>
+<% } %>
+<% if (typeof errorMsg !== 'undefined' && errorMsg) { %>
+  <div class="flash-data" data-type="error" data-msg="<%= errorMsg %>"></div>
+<% } %>

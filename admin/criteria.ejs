@@ -1,0 +1,101 @@
+<%- include('../partials/header', { title: 'Evaluation Criteria' }) %>
+<div class="app-shell">
+  <%- include('../partials/sidebar', { user, activeNav: 'criteria' }) %>
+  <main class="main-content">
+    <%- include('../partials/topbar', { pageTitle: 'Evaluation Criteria' }) %>
+    <div class="content-area">
+
+      <div class="section-banner" style="margin-bottom:1.5rem">
+        <div class="section-banner-icon">✅</div>
+        <div>
+          <h2>Evaluation Criteria</h2>
+          <p>
+            Define what students rate their lecturers on.
+            Editing existing criteria <strong>does not affect</strong> previously submitted evaluations —
+            each submission stores a permanent snapshot of the criteria name at time of submission.
+          </p>
+        </div>
+      </div>
+
+      <div class="alert alert-info" style="margin-bottom:1.5rem">
+        ℹ Modifications only affect <strong>future</strong> evaluation forms.
+        All historical records retain their original criteria snapshots and cannot be altered.
+      </div>
+
+      <div class="flex justify-between items-center" style="margin-bottom:1.25rem">
+        <span class="text-muted text-sm">
+          <%=criteria.filter(c=>c.isActive).length%> active
+          of <%=criteria.length%> total criteria
+        </span>
+        <a href="/admin/criteria/new" class="btn btn-primary">+ Add Criteria</a>
+      </div>
+
+      <% if(successMsg != null){ %>
+        <div class="alert alert-success" style="margin-bottom:1rem" data-autodismiss="5000">✓ <%=successMsg%></div>
+      <% } %>
+
+      <% if(criteria.length===0){ %>
+        <div class="empty-state" style="padding:4rem;border:1px solid var(--border);border-radius:var(--radius)">
+          <div class="empty-icon">✅</div>
+          <h3>No criteria defined yet</h3>
+          <p>Add your first evaluation criterion to get started.</p>
+          <a href="/admin/criteria/new" class="btn btn-primary" style="margin-top:1.25rem">+ Add First Criteria</a>
+        </div>
+      <% } else { %>
+        <%
+          const grouped = {};
+          criteria.forEach(c => {
+            const cat = c.category || 'General';
+            if(!grouped[cat]) grouped[cat] = [];
+            grouped[cat].push(c);
+          });
+        %>
+        <% Object.entries(grouped).forEach(([cat, items]) => { %>
+          <div style="margin-bottom:1.5rem">
+            <div style="font-size:0.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.6rem">
+              <%=cat%>
+            </div>
+            <% items.forEach((c,idx) => { %>
+              <div class="card" style="
+                margin-bottom:0.6rem;
+                display:flex;align-items:center;justify-content:space-between;
+                flex-wrap:wrap;gap:1rem;
+                border-left:3px solid <%=c.isActive?'var(--accent)':'var(--border)'%>;
+                animation:fadeUp 0.25s ease both;animation-delay:<%=idx*0.04%>s;
+                opacity:<%=c.isActive?1:0.6%>
+              ">
+                <div style="flex:1;min-width:200px">
+                  <div class="flex items-center gap-1" style="margin-bottom:0.35rem;flex-wrap:wrap">
+                    <span style="font-weight:700;font-size:0.95rem"><%=c.name%></span>
+                    <span class="badge badge-purple"><%=c.category||'General'%></span>
+                    <span class="badge <%=c.isActive?'badge-green':'badge-gray'%>">
+                      <%=c.isActive?'Active':'Inactive'%>
+                    </span>
+                    <span class="text-xs text-muted" data-tooltip="Display order on evaluation form">
+                      Order: <%=c.order%>
+                    </span>
+                  </div>
+                  <% if(c.description){ %>
+                    <p class="text-sm text-muted"><%=c.description%></p>
+                  <% } %>
+                </div>
+                <div class="flex gap-1">
+                  <a href="/admin/criteria/<%=c._id%>/edit" class="btn btn-secondary btn-sm">✏ Edit</a>
+                  <form action="/admin/criteria/<%=c._id%>/toggle" method="POST" style="margin:0">
+                    <button type="submit" class="btn btn-ghost btn-sm"
+                            data-confirm="<%=c.isActive?'Deactivate this criterion?':'Activate this criterion?'%>"
+                            data-tooltip="<%=c.isActive?'Deactivate':'Activate'%>">
+                      <%=c.isActive?'🔒 Disable':'🔓 Enable'%>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% }) %>
+      <% } %>
+
+    </div>
+  </main>
+</div>
+<%- include('../partials/footer') %>

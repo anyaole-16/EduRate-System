@@ -1,0 +1,112 @@
+<%- include('../partials/header', { title: 'Admin Overview' }) %>
+
+<div class="app-shell">
+  <%- include('../partials/sidebar', { user, activeNav: 'overview' }) %>
+  <main class="main-content">
+    <%- include('../partials/topbar', { pageTitle: 'Admin Overview' }) %>
+    <div class="content-area">
+
+      <div class="section-banner" style="margin-bottom:1.75rem">
+        <div class="section-banner-icon">⚙️</div>
+        <div>
+          <h2>Welcome back, <%= user.fullName.split(' ')[0] %></h2>
+          <p>
+            <% if (activePeriods > 0) { %>
+              <strong style="color:var(--success)"><%= activePeriods %> evaluation period<%= activePeriods !== 1 ? 's' : '' %></strong> currently open.
+            <% } else { %>
+              No evaluation periods are currently open. <a href="/admin/periods/new">Create one →</a>
+            <% } %>
+          </p>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-grid" style="grid-template-columns:repeat(5,1fr); margin-bottom:1.75rem">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(42,111,219,0.15); color:var(--accent2)">🎓</div>
+          <div class="stat-info"><div class="value"><%= totalStudents %></div><div class="label">Students</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(15,185,129,0.15); color:var(--success)">👨‍🏫</div>
+          <div class="stat-info"><div class="value"><%= totalLecturers %></div><div class="label">Lecturers</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(139,92,246,0.15); color:#c4b5fd">📚</div>
+          <div class="stat-info"><div class="value"><%= totalCourses %></div><div class="label">Courses</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(240,168,71,0.15); color:var(--warning)">📝</div>
+          <div class="stat-info"><div class="value"><%= totalEvaluations %></div><div class="label">Total Evaluations</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(15,185,129,0.15); color:var(--success)">🟢</div>
+          <div class="stat-info">
+            <div class="value" style="color:<%= activePeriods > 0 ? 'var(--success)' : 'var(--text-muted)' %>"><%= activePeriods %></div>
+            <div class="label">Active Periods</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIVITY CHART -->
+      <div class="card" style="margin-bottom:1.75rem">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Submission Activity</div>
+            <div class="card-subtitle">Evaluation submissions over the last 7 days</div>
+          </div>
+          <% if (recentEvals && recentEvals.length > 0) { %>
+            <span class="badge badge-blue"><%= recentEvals.reduce((s,d) => s + d.count, 0) %> this week</span>
+          <% } %>
+        </div>
+        <% if (!recentEvals || recentEvals.length === 0) { %>
+          <div class="empty-state" style="padding:2.5rem">
+            <div class="empty-icon" style="font-size:2.25rem">📊</div>
+            <p>No submissions in the last 7 days</p>
+          </div>
+        <% } else { %>
+          <div class="chart-container" style="height:230px">
+            <canvas id="activityChart" aria-label="Submission activity bar chart"></canvas>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- QUICK NAV -->
+      <div class="grid-4">
+        <a href="/admin/users" class="quick-link-card">
+          <div class="quick-link-icon">👥</div>
+          <div class="quick-link-title">Users</div>
+          <div class="quick-link-sub"><%= totalStudents + totalLecturers %> accounts</div>
+        </a>
+        <a href="/admin/courses" class="quick-link-card">
+          <div class="quick-link-icon">📚</div>
+          <div class="quick-link-title">Courses</div>
+          <div class="quick-link-sub"><%= totalCourses %> registered</div>
+        </a>
+        <a href="/admin/criteria" class="quick-link-card">
+          <div class="quick-link-icon">✅</div>
+          <div class="quick-link-title">Eval Criteria</div>
+          <div class="quick-link-sub">Define &amp; manage</div>
+        </a>
+        <a href="/admin/periods" class="quick-link-card">
+          <div class="quick-link-icon">📅</div>
+          <div class="quick-link-title">Periods</div>
+          <div class="quick-link-sub"><%= activePeriods %> open now</div>
+        </a>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<% if (recentEvals && recentEvals.length > 0) { %>
+<script>
+  window.EDURATE_CHARTS = {
+    activity: {
+      labels: <%- JSON.stringify(recentEvals.map(d => d._id)) %>,
+      data:   <%- JSON.stringify(recentEvals.map(d => d.count)) %>,
+    }
+  };
+</script>
+<% } %>
+
+<%- include('../partials/footer', { extraJs: ['charts.js'] }) %>

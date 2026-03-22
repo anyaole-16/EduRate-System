@@ -1,0 +1,221 @@
+<%- include('../partials/header', { title: 'My Profile' }) %>
+
+<div class="app-shell">
+  <%- include('../partials/sidebar', { user, activeNav: 'profile' }) %>
+
+  <main class="main-content">
+    <%- include('../partials/topbar', { pageTitle: 'My Profile' }) %>
+
+    <div class="content-area">
+
+      <!-- PAGE INTRO -->
+      <div class="section-banner" style="margin-bottom:1.75rem">
+        <div class="section-banner-icon">👤</div>
+        <div>
+          <h2>Account Details</h2>
+          <p>View your institutional information and update your password below.</p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="align-items:start">
+
+        <!-- ===== PROFILE INFO CARD ===== -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Account Information</div>
+            <span class="badge badge-blue">Student</span>
+          </div>
+
+          <!-- Avatar + name row -->
+          <div style="
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+          ">
+            <div class="avatar-lg avatar-blue">
+              <%= user.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) %>
+            </div>
+            <div>
+              <div style="font-weight:700; font-size:1.05rem; margin-bottom:0.2rem">
+                <%= user.fullName %>
+              </div>
+              <div class="text-muted text-sm"><%= user.email %></div>
+              <div style="margin-top:0.4rem; display:flex; gap:0.4rem; flex-wrap:wrap">
+                <span class="badge badge-blue">Student</span>
+                <% if (user.isActive) { %>
+                  <span class="badge badge-green">Active</span>
+                <% } else { %>
+                  <span class="badge badge-red">Inactive</span>
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Read-only fields -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" class="form-control" value="<%= user.fullName %>" readonly>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Matric Number</label>
+              <input type="text" class="form-control" value="<%= user.matricNumber || '—' %>" readonly>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Institutional Email</label>
+            <input type="email" class="form-control" value="<%= user.email %>" readonly>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Department</label>
+              <input type="text" class="form-control" value="<%= user.department || '—' %>" readonly>
+            </div>
+            <div class="form-group">
+              <label class="form-label">School / Faculty</label>
+              <input type="text" class="form-control" value="<%= user.school || '—' %>" readonly>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Member Since</label>
+            <input
+              type="text"
+              class="form-control"
+              value="<%= new Date(user.createdAt).toLocaleDateString('en-GB', {
+                day:   'numeric',
+                month: 'long',
+                year:  'numeric'
+              }) %>"
+              readonly
+            >
+          </div>
+        </div>
+
+        <!-- ===== CHANGE PASSWORD CARD ===== -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Change Password</div>
+              <div class="card-subtitle">Passwords are stored as a one-way bcrypt hash</div>
+            </div>
+            <span style="font-size:1.25rem">🔒</span>
+          </div>
+
+          <!-- Flash messages from controller -->
+          <% if (successMsg != null) { %>
+            <div class="alert alert-success" style="margin-bottom:1.25rem">
+              ✓ <%= successMsg %>
+            </div>
+          <% } %>
+          <% if (errorMsg != null) { %>
+            <div class="alert alert-danger" style="margin-bottom:1.25rem">
+              ⚠ <%= errorMsg %>
+            </div>
+          <% } %>
+
+          <form action="/student/profile/password" method="POST" id="pwd-form">
+
+            <div class="form-group">
+              <label class="form-label" for="currentPassword">Current Password</label>
+              <div class="password-field">
+                <input
+                  type="password"
+                  id="currentPassword"
+                  name="currentPassword"
+                  class="form-control"
+                  placeholder="Enter your current password"
+                  required
+                  autocomplete="current-password"
+                >
+                <button type="button" class="password-toggle" aria-label="Show/hide password">👁</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="newPassword">New Password</label>
+              <div class="password-field">
+                <input
+                  type="password"
+                  id="newPassword"
+                  name="newPassword"
+                  class="form-control"
+                  placeholder="Minimum 6 characters"
+                  required
+                  minlength="6"
+                  autocomplete="new-password"
+                  id="new-pwd-input"
+                >
+                <button type="button" class="password-toggle" aria-label="Show/hide password">👁</button>
+              </div>
+              <!-- Strength bar -->
+              <div style="margin-top:0.5rem">
+                <div class="progress-bar" style="height:4px">
+                  <div class="progress-fill" id="pwd-strength-bar" style="width:0%; transition:width 0.3s ease, background 0.3s ease"></div>
+                </div>
+                <span class="form-hint" id="pwd-strength-label">Enter a new password</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="confirmPassword">Confirm New Password</label>
+              <div class="password-field">
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  class="form-control"
+                  placeholder="Repeat your new password"
+                  required
+                  autocomplete="new-password"
+                >
+                <button type="button" class="password-toggle" aria-label="Show/hide password">👁</button>
+              </div>
+              <span class="form-hint" id="confirm-match-hint"></span>
+            </div>
+
+            <div class="divider"></div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="pwd-submit-btn">
+              Update Password
+            </button>
+
+          </form>
+
+          <div class="divider"></div>
+
+          <!-- Security info -->
+          <div style="
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.875rem 1rem;
+          ">
+            <div style="font-size:0.78rem; font-weight:700; color:var(--text-muted); margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:0.7px">
+              Security Information
+            </div>
+            <ul style="list-style:none; font-size:0.8rem; color:var(--text-muted); display:flex; flex-direction:column; gap:0.3rem">
+              <li>🔐 Passwords are hashed with bcrypt — never stored in plain text</li>
+              <li>📧 Last login:
+                <%= user.lastLogin
+                    ? new Date(user.lastLogin).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
+                    : 'Unknown'
+                %>
+              </li>
+              <li>🔑 Forgot your password? <a href="/auth/forgot-password">Reset via email</a></li>
+            </ul>
+          </div>
+
+        </div><!-- /change password card -->
+
+      </div><!-- /grid-2 -->
+    </div><!-- /content-area -->
+  </main>
+</div>
+
+<%- include('../partials/footer', { extraJs: ['profile.js'] }) %>

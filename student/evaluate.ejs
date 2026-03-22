@@ -1,0 +1,181 @@
+<%- include('../partials/header', { title: 'Evaluate — ' + course.title }) %>
+
+<div class="app-shell">
+  <%- include('../partials/sidebar', { user, activeNav: 'evaluate' }) %>
+
+  <main class="main-content">
+    <%- include('../partials/topbar', { pageTitle: 'Submit Evaluation' }) %>
+
+    <div class="content-area" style="max-width: 780px">
+
+      <!-- BACK + COURSE HEADER -->
+      <div class="card" style="margin-bottom:1.5rem; border-left: 3px solid var(--accent)">
+        <div class="flex items-center justify-between" style="flex-wrap:wrap; gap:1rem">
+          <div>
+            <!-- badges -->
+            <div class="flex items-center gap-1" style="margin-bottom:0.55rem; flex-wrap:wrap">
+              <span class="badge badge-blue"><%= course.code %></span>
+              <span class="badge badge-purple"><%= course.department %></span>
+              <%
+                const daysNum  = parseInt(daysLeft);
+                const urgColor = daysNum <= 2 ? 'var(--danger)' : daysNum <= 5 ? 'var(--warning)' : 'var(--success)';
+                const dotCls   = daysNum <= 2 ? 'urgent' : daysNum <= 5 ? 'soon' : 'normal';
+              %>
+              <div class="deadline-indicator">
+                <div class="deadline-dot <%= dotCls %>"></div>
+                <span style="color:<%= urgColor %>; font-size:0.78rem"><%= daysLeft %></span>
+              </div>
+            </div>
+
+            <h2 style="font-size:1.15rem; margin-bottom:0.25rem"><%= course.title %></h2>
+            <p class="text-muted text-sm">
+              👤 <%= course.lecturer.fullName %>
+              &nbsp;·&nbsp;
+              📅 Period closes: <strong><%= period.endDateFormatted %></strong>
+            </p>
+          </div>
+          <a href="/student/dashboard" class="btn btn-secondary btn-sm">← Back</a>
+        </div>
+      </div>
+
+      <!-- ANONYMITY NOTICE -->
+      <div class="alert alert-info" style="margin-bottom:1.75rem">
+        🔒
+        <span>
+          Your responses are <strong>completely anonymous</strong>.
+          No personal information is linked to your submission at any point.
+          Responses are stored using a one-way hash — your identity cannot be traced.
+        </span>
+      </div>
+
+      <!-- ERROR -->
+      <% if (errorMsg != null) { %>
+        <div class="alert alert-danger" style="margin-bottom:1rem">⚠ <%= errorMsg %></div>
+      <% } %>
+
+      <!-- EVALUATION FORM -->
+      <form action="/student/evaluate/<%= course._id %>" method="POST" id="eval-form">
+        <input type="hidden" name="periodId" value="<%= period._id %>">
+
+        <!-- RATING CRITERIA CARD -->
+        <div class="card" style="margin-bottom:1.5rem">
+
+          <div class="card-header">
+            <div>
+              <div class="card-title">Rate Your Lecturer</div>
+              <div class="card-subtitle">
+                Score each criterion from <strong>1 (Poor)</strong> to <strong>5 (Excellent)</strong>.
+                All fields are required.
+              </div>
+            </div>
+            <span class="badge badge-purple"><%= criteria.length %> criteria</span>
+          </div>
+
+          <!-- Progress indicator -->
+          <div style="margin-bottom:1.5rem">
+            <div class="flex items-center justify-between" style="margin-bottom:0.4rem">
+              <span class="text-xs text-muted font-bold" style="text-transform:uppercase; letter-spacing:0.7px">Completion</span>
+              <span class="text-xs text-muted" id="completion-label">0 / <%= criteria.length %> answered</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="completion-bar" style="width:0%"></div>
+            </div>
+          </div>
+
+          <!-- CRITERIA ITEMS -->
+          <% criteria.forEach((c, i) => { %>
+            <div class="likert-group" style="animation-delay:<%= i * 0.04 %>s">
+
+              <div class="flex items-center gap-1" style="margin-bottom:0.5rem">
+                <span class="criteria-num"><%= i + 1 %></span>
+                <div>
+                  <div class="likert-label" style="margin-bottom:0">
+                    <span><%= c.name %></span>
+                    <span class="badge badge-gray" style="margin-left:0.75rem"><%= c.category %></span>
+                  </div>
+                  <% if (c.description) { %>
+                    <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.15rem"><%= c.description %></p>
+                  <% } %>
+                </div>
+              </div>
+
+              <div class="likert-scale">
+                <% for (let v = 1; v <= 5; v++) { %>
+                  <div class="likert-option">
+                    <input
+                      type="radio"
+                      name="ratings[<%= c._id %>]"
+                      id="c_<%= c._id %>_<%= v %>"
+                      value="<%= v %>"
+                      required
+                      class="likert-radio"
+                      data-group="<%= c._id %>"
+                    >
+                    <label for="c_<%= c._id %>_<%= v %>"><%= v %></label>
+                  </div>
+                <% } %>
+              </div>
+
+              <div class="likert-hint">
+                <span>1 — Poor</span>
+                <span>3 — Average</span>
+                <span>5 — Excellent</span>
+              </div>
+
+            </div>
+          <% }) %>
+
+        </div><!-- /rating card -->
+
+        <!-- OPTIONAL FEEDBACK CARD -->
+        <div class="card" style="margin-bottom:1.75rem">
+          <div class="card-header">
+            <div>
+              <div class="card-title">General Feedback</div>
+              <div class="card-subtitle">
+                Optionally share any written comments about this lecturer's teaching.
+              </div>
+            </div>
+            <span class="badge badge-gray">Optional</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom:0">
+            <textarea
+              name="feedback"
+              id="feedback-textarea"
+              class="form-control"
+              placeholder="e.g. The lecturer explains complex topics very clearly and is always approachable..."
+              maxlength="1000"
+              rows="4"
+            ></textarea>
+            <div class="flex items-center justify-between" style="margin-top:0.35rem">
+              <span class="form-hint">Anonymous. Maximum 1000 characters.</span>
+              <span class="form-hint" id="char-count">0 / 1000</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="flex gap-2" style="align-items:center">
+          <a href="/student/dashboard" class="btn btn-secondary">Cancel</a>
+          <button
+            type="submit"
+            class="btn btn-primary btn-lg"
+            id="submit-btn"
+            style="flex:1"
+          >
+            Submit Evaluation
+          </button>
+        </div>
+
+        <p class="text-xs text-muted" style="margin-top:0.75rem; text-align:center">
+          Once submitted, evaluations cannot be changed. You may only submit once per lecturer per evaluation period.
+        </p>
+
+      </form>
+
+    </div><!-- /content-area -->
+  </main>
+</div>
+
+<%- include('../partials/footer', { extraJs: ['evaluate.js'] }) %>

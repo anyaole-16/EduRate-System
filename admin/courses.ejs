@@ -1,0 +1,91 @@
+<%- include('../partials/header', { title: 'Course Management' }) %>
+<div class="app-shell">
+  <%- include('../partials/sidebar', { user, activeNav: 'courses' }) %>
+  <main class="main-content">
+    <%- include('../partials/topbar', { pageTitle: 'Course Management' }) %>
+    <div class="content-area">
+
+      <div class="card" style="margin-bottom:1.25rem">
+        <div class="flex gap-2" style="flex-wrap:wrap;align-items:flex-end;justify-content:space-between">
+          <div class="flex gap-2" style="flex-wrap:wrap;align-items:flex-end">
+            <form action="/admin/courses" method="GET" class="flex gap-2" style="align-items:flex-end">
+              <div class="form-group" style="margin-bottom:0">
+                <label class="form-label">Department</label>
+                <input type="text" name="department" class="form-control" style="width:200px"
+                       placeholder="Filter by department"
+                       value="<%=filterDept != null ? filterDept||'':''%>">
+              </div>
+              <button type="submit" class="btn btn-secondary">Filter</button>
+              <% if(filterDept != null){ %>
+                <a href="/admin/courses" class="btn btn-ghost btn-sm">✕ Clear</a>
+              <% } %>
+            </form>
+            <input type="search" data-search-target="courses-table" class="form-control"
+                   placeholder="Search courses…" style="width:200px;font-size:0.82rem">
+          </div>
+          <a href="/admin/courses/new" class="btn btn-primary">+ Add Course</a>
+        </div>
+      </div>
+
+      <% if(successMsg != null){ %>
+        <div class="alert alert-success" style="margin-bottom:1rem" data-autodismiss="5000">✓ <%=successMsg%></div>
+      <% } %>
+
+      <div class="table-wrapper">
+        <table id="courses-table">
+          <thead>
+            <tr>
+              <th>Code</th><th>Title</th><th>Department</th>
+              <th>Lecturer</th><th>Period</th><th>Enrolment</th>
+              <th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          <% if(courses.length===0){ %>
+            <tr><td colspan="8">
+              <div class="empty-state" style="padding:3rem">
+                <div class="empty-icon">📚</div>
+                <h3>No courses found</h3>
+                <p><a href="/admin/courses/new">Add the first course</a> to get started.</p>
+              </div>
+            </td></tr>
+          <% } else { %>
+            <% courses.forEach((c,idx)=>{ %>
+              <tr style="animation:fadeUp 0.25s ease both;animation-delay:<%=idx*0.025%>s">
+                <td><span class="badge badge-blue"><%=c.code%></span></td>
+                <td><strong style="font-size:0.875rem"><%=c.title%></strong></td>
+                <td style="font-size:0.875rem"><%=c.department%></td>
+                <td>
+                  <% if(c.lecturer){ %>
+                    <div style="font-size:0.875rem;font-weight:500"><%=c.lecturer.fullName%></div>
+                    <div style="font-size:0.75rem;color:var(--text-muted)"><%=c.lecturer.email%></div>
+                  <% } else { %>
+                    <span class="badge badge-red">Unassigned</span>
+                  <% } %>
+                </td>
+                <td style="white-space:nowrap">
+                  <span class="badge badge-gray"><%=c.semester%> Sem</span>
+                  <span style="font-size:0.8rem;color:var(--text-muted);margin-left:0.25rem"><%=c.academicYear%></span>
+                </td>
+                <td>
+                  <span style="font-weight:700"><%=c.enrolledStudents?c.enrolledStudents.length:0%></span>
+                  <span class="text-muted text-xs"> students</span>
+                </td>
+                <td><span class="badge <%=c.isActive?'badge-green':'badge-red'%>"><%=c.isActive?'Active':'Inactive'%></span></td>
+                <td>
+                  <a href="/admin/courses/<%=c._id%>/edit" class="btn btn-secondary btn-sm" data-tooltip="Edit course">✏ Edit</a>
+                </td>
+              </tr>
+            <% }) %>
+            <tr data-empty-row style="display:none">
+              <td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem">No courses match your search.</td>
+            </tr>
+          <% } %>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</div>
+<%- include('../partials/footer') %>

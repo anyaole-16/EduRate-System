@@ -1,0 +1,22 @@
+<%# Reusable modal shell — content injected per-page via the 'modals' block %>
+
+<div class="modal-backdrop" id="modal-backdrop" onclick="closeAllModals()"></div>
+
+<script>
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.getElementById('modal-backdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.getElementById('modal-backdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function closeAllModals() {
+  document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+  document.getElementById('modal-backdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllModals(); });
+</script>

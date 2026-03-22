@@ -1,0 +1,104 @@
+<%- include('../partials/header', { title: isEdit ? 'Edit Period' : 'New Evaluation Period' }) %>
+<div class="app-shell">
+  <%- include('../partials/sidebar', { user: currentUser, activeNav: 'periods' }) %>
+  <main class="main-content">
+    <%- include('../partials/topbar', { pageTitle: isEdit ? 'Edit Evaluation Period' : 'Create Evaluation Period' }) %>
+    <div class="content-area">
+      <div style="max-width:660px">
+
+        <a href="/admin/periods" class="btn btn-ghost btn-sm" style="margin-bottom:1.25rem">← Back to Periods</a>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title"><%=isEdit?'Edit Period':'New Evaluation Period'%></div>
+              <div class="card-subtitle">Define the window during which students can submit evaluations</div>
+            </div>
+          </div>
+
+          <% if(errorMsg != null){ %>
+            <div class="alert alert-danger" style="margin-bottom:1rem">⚠ <%=errorMsg%></div>
+          <% } %>
+
+          <% const f=formData != null ? formData:(isEdit?editPeriod:{}); %>
+
+          <form action="<%=isEdit?'/admin/periods/'+editPeriod._id+'/edit':'/admin/periods/new'%>"
+                method="POST" data-loading-text="Saving…">
+
+            <div class="form-group">
+              <label class="form-label" for="title">Period Title <span style="color:var(--danger)">*</span></label>
+              <input type="text" id="title" name="title" class="form-control"
+                     placeholder="e.g. First Semester 2023/2024 Evaluation"
+                     value="<%=f.title||''%>" required>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="semester">Semester <span style="color:var(--danger)">*</span></label>
+                <select id="semester" name="semester" class="form-control" required>
+                  <option value="">Select semester</option>
+                  <option value="First"  <%=(f.semester||'')==='First'  ?'selected':''%>>First Semester</option>
+                  <option value="Second" <%=(f.semester||'')==='Second' ?'selected':''%>>Second Semester</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="academicYear">Academic Year <span style="color:var(--danger)">*</span></label>
+                <input type="text" id="academicYear" name="academicYear" class="form-control"
+                       placeholder="2023/2024" value="<%=f.academicYear||''%>" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="startDate">Start Date <span style="color:var(--danger)">*</span></label>
+                <input type="date" id="startDate" name="startDate" class="form-control"
+                       value="<%=f.startDate?new Date(f.startDate).toISOString().split('T')[0]:''%>" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="endDate">End Date <span style="color:var(--danger)">*</span></label>
+                <input type="date" id="endDate" name="endDate" class="form-control"
+                       value="<%=f.endDate?new Date(f.endDate).toISOString().split('T')[0]:''%>" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="courses">
+                Assign Courses
+                <span class="text-xs text-muted" style="font-weight:400;text-transform:none;letter-spacing:0">
+                  — hold Ctrl / Cmd to select multiple
+                </span>
+              </label>
+              <select id="courses" name="courses" class="form-control" multiple style="min-height:160px">
+                <% allCourses.forEach(c=>{ %>
+                  <% const selIds=(f.courses||[]).map(id=>id.toString?id.toString():String(id)); %>
+                  <option value="<%=c._id%>" <%=selIds.includes(c._id.toString())?'selected':''%>>
+                    <%=c.code%> — <%=c.title%> (<%=c.semester%> Sem, <%=c.academicYear%>)
+                  </option>
+                <% }) %>
+              </select>
+              <div class="form-hint">Only selected courses will be evaluable in this period</div>
+            </div>
+
+            <div class="form-group" style="display:flex;align-items:center;gap:0.75rem">
+              <input type="checkbox" id="isActive" name="isActive" value="true"
+                     style="width:18px;height:18px;accent-color:var(--accent)"
+                     <%=(!isEdit||(f.isActive===true||f.isActive==='true'))?'checked':''%>>
+              <label for="isActive" style="font-size:0.875rem;cursor:pointer;font-weight:500">
+                Active — students can submit evaluations within the date window above
+              </label>
+            </div>
+
+            <div class="divider"></div>
+            <div class="flex gap-2">
+              <a href="/admin/periods" class="btn btn-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary" style="flex:1">
+                <%=isEdit?'Save Changes':'Create Period'%>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<%- include('../partials/footer') %>

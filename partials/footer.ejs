@@ -1,0 +1,9 @@
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="/js/ui.js"></script>
+  <% if (typeof extraJs !== 'undefined') { %>
+    <% extraJs.forEach(file => { %>
+      <script src="/js/<%= file %>"></script>
+    <% }) %>
+  <% } %>
+</body>
+</html>
